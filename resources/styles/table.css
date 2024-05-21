@@ -1,0 +1,47 @@
+.table-default-style {
+	border-collapse: collapse !important;
+	font-size: 1em;
+	margin-top: 10px;
+	max-width: 900px;
+}
+
+.table-default-style td,
+.table-default-style th,
+.table-default-style td rowspan {
+	.lightTheme & {
+		border: solid 1px black;
+	}
+
+	.darkTheme & {
+		border: solid 1px white;
+	}
+}
+
+.table-default-style * {
+	-webkit-transform: none !important;
+	transform: none !important;
+}
+
+.table-default-style th,
+.table-default-style td {
+	padding: 5px !important;
+}
+
+.table-default-style p {
+	padding: 0px !important;
+	margin: 0px !important;
+}
+
+.table-default-style ul,
+.table-default-style ol {
+	padding-left: 20px !important;
+	margin: 0px !important;
+}
+
+.table-default-style ul ul,
+.table-default-style ul ol,
+.table-default-style ol ol,
+.table-default-style ol ul {
+	padding-left: 20px !important;
+	margin: 0px !important;
+}

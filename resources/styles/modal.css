@@ -1,0 +1,122 @@
+.modalWindow {
+	display: none;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 1000;
+	padding: 15px;
+	box-shadow: 0 0 20px 20px rgba(0, 0, 0, 0.2);
+	max-width: 90vw;
+	max-height: 90vh;
+	min-width: 10vw;
+	min-height: 10vh;
+	overflow-y: auto;
+	border-radius: 10px;
+	width: fit-content;
+	height: fit-content;
+
+	.lightTheme & {
+		background-color: white;
+		color: black;
+	}
+
+	.darkTheme & {
+		background-color: black;
+		color: white;
+	}
+}
+
+.modalContent {
+	min-width: 10vw;
+	min-height: 10vh;
+	max-width: 89vw;
+	max-height: 89vh;
+	overflow: auto;
+	margin: auto;
+	display: block;
+}
+
+.modalWindow {
+	.lightTheme & {
+		background-color: white;
+		color: black;
+	}
+
+	.darkTheme & {
+		background-color: black;
+		color: white;
+	}
+}
+
+.modalDetailsContainer {
+	margin: auto;
+	display: block;
+}
+
+.modalImg {
+	max-width: 85vw;
+	max-height: 85vh;
+	min-width: 10vw;
+	min-height: 10vh;
+	margin: auto;
+	display: block;
+}
+
+.close {
+	color: white;
+	float: right;
+	font-size: 20px;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.close:hover {
+	color: #ddd;
+}
+
+.modalIndexDisplay {
+	font-size: xx-small;
+	text-align: center;
+}
+
+.help-table {
+	margin: auto;
+}
+
+.help-table-row {
+	margin-bottom: 5px;
+}
+
+.help-table-cell {
+	padding: 3px 10px;
+}
+
+.helpContent {
+	margin: auto;
+}
+
+.help-shortcut {
+	.lightTheme & {
+		background-color: #f0f0f0;
+	}
+
+	.darkTheme & {
+		background-color: #333;
+	}
+}
+
+.testOptionButton {
+	.lightTheme & {
+		background-color: rgb(230, 230, 230);
+	}
+
+	.darkTheme & {
+		background-color: rgb(50, 50, 50);
+	}
+
+	border: none;
+	border-radius: 4px;
+	margin: 5px;
+	width: 60px;
+}
