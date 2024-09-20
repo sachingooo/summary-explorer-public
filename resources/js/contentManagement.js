@@ -21,11 +21,42 @@ const TEST_TYPE = {
 }
 
 /**
+ * Gets the registry keys from the URL or local storage.
+ * First, it checks the URL for the keys. If the keys are not found in the URL, it checks the local storage.
+ * If the keys are not found in the URL or local storage, empty strings are returned.
+ * @returns {object} The registry keys, with explorer-key-1 and explorer-key-2 as keys.
+ */
+function getRegistryKeys() {
+	if (localStorage.getItem('explorer-key-1') && localStorage.getItem('explorer-key-2')) {
+		return {
+			"explorer-key-1": localStorage.getItem('explorer-key-1'),
+			"explorer-key-2": localStorage.getItem('explorer-key-2'),
+		}
+	}
+
+	const urlSearchParams = new URLSearchParams(window.location.search);
+	const params = Object.fromEntries(urlSearchParams.entries());
+	if (params['explorer-key-1'] && params['explorer-key-2']) {
+		return {
+			"explorer-key-1": params['explorer-key-1'],
+			"explorer-key-2": params['explorer-key-2'],
+		}
+	}
+
+	return {
+		"explorer-key-1": "",
+		"explorer-key-2": "",
+	}
+}
+
+
+/**
  * Determines if the user has access to the content.
  * @returns {boolean} True if the user has access to the content, false otherwise.
  */
 function userHasRegistryKeys() {
-	return localStorage.getItem('explorer-key-1') && localStorage.getItem('explorer-key-2');
+	const registryKeys = getRegistryKeys();
+	return registryKeys['explorer-key-1'] && registryKeys['explorer-key-2'];
 }
 
 /**
@@ -61,9 +92,10 @@ function decryptContent(content, key) {
 		// already decrypted
 		return decrypted[key];
 	}
+	const registryKeys = getRegistryKeys();
+	const firstKey = registryKeys['explorer-key-1'];
+	const secondKey = registryKeys['explorer-key-2'];
 
-	const firstKey = localStorage.getItem('explorer-key-1');
-	const secondKey = localStorage.getItem('explorer-key-2');
 	if (!sessionPass) {
 		sessionPass = prompt('Enter password: ');
 	}
