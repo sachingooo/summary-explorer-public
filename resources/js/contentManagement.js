@@ -29,12 +29,9 @@ const TEST_TYPE = {
 function getRegistryKeys() {
 	const urlSearchParams = new URLSearchParams(window.location.search);
 	const params = Object.fromEntries(urlSearchParams.entries());
-	console.log(params);
 	if (params['explorer-key-1'] && params['explorer-key-2']) {
-		return {
-			"explorer-key-1": params['explorer-key-1'],
-			"explorer-key-2": params['explorer-key-2'],
-		}
+		localStorage.setItem('explorer-key-1', params['explorer-key-1']);
+		localStorage.setItem('explorer-key-2', params['explorer-key-2']);
 	}
 
 	if (localStorage.getItem('explorer-key-1') && localStorage.getItem('explorer-key-2')) {
@@ -57,7 +54,6 @@ function getRegistryKeys() {
  */
 function userHasRegistryKeys() {
 	const registryKeys = getRegistryKeys();
-	console.log(registryKeys);
 	return registryKeys['explorer-key-1'] && registryKeys['explorer-key-2'];
 }
 
@@ -141,10 +137,18 @@ function getSpecificTestContent(testKey) {
 }
 
 /**
- * Gets the valid test types based on the cached permitted test types.
+ * Gets the valid test types based on the cached permitted test types, or from the url.
  * @returns {array} The valid test types.
  */
 function getValidTestTypes() {
+	//check the url params
+	const urlSearchParams = new URLSearchParams(window.location.search);
+	const params = Object.fromEntries(urlSearchParams.entries());
+	if (params['explorer-allowed-test-types']) {
+		const permittedTestTypes = JSON.parse(params['explorer-allowed-test-types']);
+		localStorage.setItem(CURRENT_PERMITTED_TEST_TYPES_CACHE_KEY, permittedTestTypes.join(','));
+	}
+
 	const cachedPermittedTestTypes = localStorage.getItem(CURRENT_PERMITTED_TEST_TYPES_CACHE_KEY);
 	if (!cachedPermittedTestTypes?.length) {
 		return [];
