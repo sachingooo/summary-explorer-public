@@ -27,19 +27,20 @@ const TEST_TYPE = {
  * @returns {object} The registry keys, with explorer-key-1 and explorer-key-2 as keys.
  */
 function getRegistryKeys() {
-	if (localStorage.getItem('explorer-key-1') && localStorage.getItem('explorer-key-2')) {
-		return {
-			"explorer-key-1": localStorage.getItem('explorer-key-1'),
-			"explorer-key-2": localStorage.getItem('explorer-key-2'),
-		}
-	}
-
 	const urlSearchParams = new URLSearchParams(window.location.search);
 	const params = Object.fromEntries(urlSearchParams.entries());
+	console.log(params);
 	if (params['explorer-key-1'] && params['explorer-key-2']) {
 		return {
 			"explorer-key-1": params['explorer-key-1'],
 			"explorer-key-2": params['explorer-key-2'],
+		}
+	}
+
+	if (localStorage.getItem('explorer-key-1') && localStorage.getItem('explorer-key-2')) {
+		return {
+			"explorer-key-1": localStorage.getItem('explorer-key-1'),
+			"explorer-key-2": localStorage.getItem('explorer-key-2'),
 		}
 	}
 
@@ -56,6 +57,7 @@ function getRegistryKeys() {
  */
 function userHasRegistryKeys() {
 	const registryKeys = getRegistryKeys();
+	console.log(registryKeys);
 	return registryKeys['explorer-key-1'] && registryKeys['explorer-key-2'];
 }
 
