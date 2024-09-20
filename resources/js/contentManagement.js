@@ -145,7 +145,7 @@ function getValidTestTypes() {
 	const urlSearchParams = new URLSearchParams(window.location.search);
 	const params = Object.fromEntries(urlSearchParams.entries());
 	if (params['explorer-allowed-test-types']) {
-		const permittedTestTypes = JSON.parse(params['explorer-allowed-test-types']);
+		const permittedTestTypes = params['explorer-allowed-test-types'];
 		localStorage.setItem(CURRENT_PERMITTED_TEST_TYPES_CACHE_KEY, permittedTestTypes.join(','));
 	}
 
