@@ -25,6 +25,7 @@
 	<!-- external libraries -->
 	<script src="https://unpkg.com/virtual-scroller@1.x/bundle/virtual-scroller-dom.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+	<script src="https://apis.google.com/js/api.js"></script>
 
 </head>
 
@@ -33,10 +34,16 @@
 	<div id="topFade" class="topFade"></div>
 	<div class="background-static"></div>
 	<div class="allContent masked-overflow">
-		<div class="header">
+		<div id="headerContent" class="header" style="visibility: hidden;">
 			<div class="titleAndButtons">
-				<span>
-					<h3>Educational Objective Explorer</h3>
+				<span class="titleAndName">
+					<h4>
+						<span>Content Explorer</span>
+						<span id="nameVersionSpan" style="visibility: hidden; margin-left: 12px;">
+							<mark id="nameSpan" class="headerBadge">Placeholder</mark>
+							<mark id="versionSpan" class="headerBadge">vXX</mark>
+						</span>
+					</h4>
 				</span>
 				<span id="selectTestSpan" style="display: none;">
 					<select id="selectTest" class="selectTest" onchange="onTestSelectChanged(this)">
@@ -53,6 +60,10 @@
 					</span>
 					<span id="flagButton" class="topActionButton" onclick="toggleFlagged()" title="Flagged">
 						<i id="flagIcon" class="bi bi-flag"></i>
+					</span>
+					<span id="completedButton" class="topActionButton" onclick="toggleCompleted()" title="Completed"
+						style="display: none;">
+						<i id="completedIcon" class="bi bi-check-square"></i>
 					</span>
 					<span id="sortButton" class="topActionButton" onclick="toggleSorted()" title="Sort">
 						<i id="sortIcon" class="bi bi-sort-down"></i>
@@ -74,8 +85,13 @@
 			</div>
 		</div>
 		<span id="resultCount" class="resultCount"></span>
-		<div id="loader" style="display: '';"></div>
-		<div id="displayContent" class="eoBody fadeIn" style="display: none;"></div> <!-- the actual content -->
+		<div id="displayContentContainer" style="visibility: hidden;">
+			<div id="displayContent" class="eoBody fadeIn"></div> <!-- the actual content -->
+		</div>
+		<div id="loaderWrapper" style="display: '';">
+			<div id="loaderSpinner"></div>
+			<div id="loaderMessage">Loaderrrrrr</div>
+		</div>
 	</div>
 	<div id="detailsModal" class="modalWindow">
 		<div class="modalContent">
@@ -85,30 +101,29 @@
 	</div>
 </body>
 
-<script>
-</script>
-
 <!-- custom scripts -->
 <script src="resources/js/contentManagement.js"></script>
-
 <script>
+	if (hasRemoteStorage()) {
+		document.getElementById("completedButton").style.display = "";
+	}
+
 	if (!userHasRegistryKeys()) {
 		const message = "Error 401: Unauthorized access. Please contact the administrator.";
 		// showErrorMessage(message);
 		window.alert(message);
 		throw new Error(message);
 	}
+
+	setLoadingMessage("Loading content...");
 </script>
 
-<!-- static files: load the content (potentially huge files) while the loader is showing -->
-<script>showLoader()</script>
-
+<!-- synchronously load the content -->
 <script src="https://cdn.jsdelivr.net/gh/sachingooo/objs/oe/s1.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/sachingooo/objs/oe/s2.js"></script>
 <script src="resources/js/Default_content.js"></script>
 
 <script>
-	hideLoader();
 	setValidTestTypes();
 </script>
 
@@ -116,9 +131,7 @@
 <script src="resources/js/index.js"></script>
 
 <script>
-	if (userHasRegistryKeys()) {
-		reinitialize();
-	}
+	asyncLoadingSequence();
 </script>
 
 </html>

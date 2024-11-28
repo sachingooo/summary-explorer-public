@@ -1,6 +1,12 @@
 const cont = {};
 const decrypted = {};
 let sessionPass = "";
+//check if sessionPass was passed in via URL
+const urlSearchParams = new URLSearchParams(window.location.search);
+const params = Object.fromEntries(urlSearchParams.entries());
+if (params['sessionPass']) {
+	sessionPass = params['sessionPass'];
+}
 
 const CURRENT_QID_CACHE_KEY = "currentEducationalObjectiveQuestionId";
 const CURRENT_SEARCH_CACHE_KEY = "currentEducationalObjectiveSearch";
@@ -12,12 +18,54 @@ const CURRENT_APPEARANCE_CACHE_KEY = "currentEducationalObjectiveAppearance";
 const CURRENT_FLAGGED_QIDS_CACHE_KEY = "currentEducationalObjectiveFlaggedQids";
 const CURRENT_HIDDEN_QIDS_CACHE_KEY = "currentEducationalObjectiveHiddenQids";
 const CURRENT_PERMITTED_TEST_TYPES_CACHE_KEY = "currentEducationalObjectivePermittedTestTypes";
+const CURRENT_REMOTE_API_KEY_CACHE_KEY = "currentEducationalObjectiveRemoteApiKey";
+const CURRENT_REMOTE_API_URL_CACHE_KEY = "currentEducationalObjectiveRemoteApiUrl";
+const CURRENT_REMOTE_API_VERSION_CACHE_KEY = "currentEducationalObjectiveRemoteApiVersion";
 
 //Test types.
 const TEST_TYPE = {
 	"Step_1": { key: "s1", display: "Step 1" },
 	"Step_2": { key: "s2", display: "Step 2" },
 	"Bar": { key: "bar", display: "Bar" },
+}
+
+function hasRemoteStorage() {
+	return localStorage.getItem(CURRENT_REMOTE_API_KEY_CACHE_KEY) && localStorage.getItem(CURRENT_REMOTE_API_URL_CACHE_KEY);
+}
+
+async function sendApiGetReq(action, body, retry = true) {
+	const remoteApiKey = localStorage.getItem(CURRENT_REMOTE_API_KEY_CACHE_KEY);
+	const remoteApiUrl = localStorage.getItem(CURRENT_REMOTE_API_URL_CACHE_KEY);
+	const version = localStorage.getItem(CURRENT_REMOTE_API_VERSION_CACHE_KEY);
+	if (!remoteApiKey || !remoteApiUrl) {
+		return;
+	}
+
+	// Send the request, then check if the response has the needsUpdate flag set to true
+	// If it does, update the GAS URL and retry the request
+	const updateReq = await fetch(`${remoteApiUrl}?api_key=${remoteApiKey}&action=${action}&version=${version}`, {
+		method: "GET",
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Accept': '*/*'
+		},
+		body: JSON.stringify(body),
+	});
+	const updateResp = await updateReq.json();
+	if (updateResp.needsUpdate && retry) {
+		// Update the GAS URL if a new version is found
+		localStorage.setItem(CURRENT_REMOTE_API_URL_CACHE_KEY, updateResp.latestVersionUrl);
+		localStorage.setItem(CURRENT_REMOTE_API_VERSION_CACHE_KEY, updateResp.latestVersion);
+		//retry the request with the new URL
+		return sendApiGetReq(action, body, false); // Retry only once
+	}
+
+	//check the error flag
+	if (updateResp.error) {
+		console.error(updateResp.error);
+	}
+
+	return updateResp;
 }
 
 /**
@@ -47,7 +95,6 @@ function getRegistryKeys() {
 	}
 }
 
-
 /**
  * Determines if the user has access to the content.
  * @returns {boolean} True if the user has access to the content, false otherwise.
@@ -61,10 +108,18 @@ function userHasRegistryKeys() {
  * Shows the loader element.
  */
 function showLoader() {
-	document.getElementById('loader').style.display = '';
-	document.getElementById('displayContent').style.display = 'none';
+	document.getElementById('loaderWrapper').style.display = '';
 	if (document.getElementById('displayContent').classList.contains('fadeIn')) {
 		document.getElementById('displayContent').classList.remove('fadeIn');
+	}
+}
+
+function setLoadingMessage(message) {
+	document.getElementById('loaderMessage').innerText = message;
+	if (message) {
+		showLoader();
+	} else {
+		hideLoader();
 	}
 }
 
@@ -72,11 +127,10 @@ function showLoader() {
  * Hides the loader element.
  */
 function hideLoader() {
-	document.getElementById('loader').style.display = 'none';
+	document.getElementById('loaderWrapper').style.display = 'none';
 	if (!document.getElementById('displayContent').classList.contains('fadeIn')) {
 		document.getElementById('displayContent').classList.add('fadeIn');
 	}
-	document.getElementById('displayContent').style.display = '';
 }
 
 /**
@@ -193,5 +247,55 @@ function setValidTestTypes() {
 
 	if (!localStorage.getItem(CURRENT_TEST_TYPE_CACHE_KEY)) {
 		localStorage.setItem(CURRENT_TEST_TYPE_CACHE_KEY, validTestTypes[0]);
+	}
+}
+
+async function initializeAppMetadata() {
+	if (!hasRemoteStorage()) {
+		return;
+	}
+
+	const usernameData = await sendApiGetReq('get_app_metadata');
+	if (!usernameData) {
+		return;
+	}
+
+	document.getElementById('nameSpan').innerText = usernameData.name;
+	document.getElementById('versionSpan').innerText = usernameData.latestVersion;
+}
+
+async function loadUserData() {
+	if (!hasRemoteStorage()) {
+		return;
+	}
+
+	const reviewProgressData = await sendApiGetReq('get_completed_questions');
+	if (!reviewProgressData) {
+		return;
+	}
+
+	if (!reviewProgressData.questionData?.length) {
+		return;
+	}
+
+	// update the completedQuestionData
+	completedQuestionData = reviewProgressData.questionData;
+}
+
+async function asyncLoadingSequence() {
+	if (hasRemoteStorage()) {
+		setLoadingMessage("Loading app metadata...");
+		await initializeAppMetadata();
+		setLoadingMessage("Loading user data...");
+		await loadUserData();
+		document.getElementById('nameVersionSpan').style.visibility = 'visible';
+	}
+	setLoadingMessage("");
+	if (userHasRegistryKeys()) {
+		setInitialParams();
+		reinitialize();
+		document.getElementById("headerContent").style.visibility = "visible";
+
+		document.getElementById("displayContentContainer").style.visibility = "visible";
 	}
 }

@@ -6,6 +6,7 @@
 
 let content = getCurrentTestContent();
 let searchIndex = buildSearchIndex();
+let completedQuestionData = [];
 
 let reviewProgress = {};
 let cachedReviewProgressString = localStorage.getItem(CURRENT_REVIEW_PROGRESS_CACHE_KEY);
@@ -33,6 +34,7 @@ let virtualScroller = null;
 let isLightMode = (localStorage.getItem(CURRENT_APPEARANCE_CACHE_KEY) || "light") == "light";
 setTheme(isLightMode ? "light" : "dark");
 let isFlagMode = false;
+let isCompletedMode = false;
 let showHidden = true;
 let isSmoothScrolling = false;
 
@@ -213,6 +215,39 @@ function updateFlagIconForEo(qid, isFlagged) {
 	}
 }
 
+function toggleCompleted() {
+	setCompletedMode(!isCompletedMode);
+}
+
+function setCompletedMode(completedMode) {
+	isCompletedMode = completedMode;
+
+	//if there's no remote storage, we can't use the completed mode
+	if (!hasRemoteStorage()) {
+		isCompletedMode = false;
+	}
+
+	const completedIcon = document.getElementById("completedIcon");
+	if (isCompletedMode) {
+		document.body.classList.add("completedMode");
+		completedIcon.classList.add("bi-check-square-fill");
+		completedIcon.classList.remove("bi-check-square");
+	} else {
+		document.body.classList.remove("completedMode");
+		completedIcon.classList.remove("bi-check-square-fill");
+		completedIcon.classList.add("bi-check-square");
+	}
+	updateContent();
+}
+
+function getCompletedQids() {
+	if (!hasRemoteStorage() || !completedQuestionData?.length) {
+		return new Set();
+	}
+
+	return completedQuestionData.map((c) => c.qid);
+}
+
 function toggleHiddenMode() {
 	setShowHiddenMode(!showHidden);
 }
@@ -311,10 +346,12 @@ function getCurrentTestContent() {
 }
 
 function onTestSelectChanged(selectElement) {
-	showLoader();
+	document.getElementById("displayContentContainer").style.visibility = "hidden";
+	setLoadingMessage("Reloading test content...");
 	setTimeout(() => {
 		setCurrentTest(selectElement.value);
-		hideLoader();
+		setLoadingMessage("");
+		document.getElementById("displayContentContainer").style.visibility = "visible";
 	}, 50);
 }
 
@@ -437,12 +474,18 @@ function setCurrentSearch(search) {
 }
 
 function getFilteredContent() {
-	if (!isFlagMode) {
-		return !!currentSearch ? content.filter((eo) => searchIndex[eo['qid']].includes(currentSearch)) : content;
-	} else {
+	let filteredMatching = !!currentSearch ? content.filter((eo) => searchIndex[eo['qid']].includes(currentSearch)) : content;
+	if (isFlagMode) {
 		const flaggedQids = getFlaggedQids();
-		return !!currentSearch ? content.filter((eo) => searchIndex[eo['qid']].includes(currentSearch) && flaggedQids.includes(eo['qid'])) : content.filter((eo) => flaggedQids.includes(eo['qid']));
+		filteredMatching = filteredMatching.filter((eo) => flaggedQids.includes(eo['qid']));
 	}
+
+	if (isCompletedMode) {
+		const completedQids = getCompletedQids();
+		filteredMatching = filteredMatching.filter((eo) => completedQids.includes(eo['qid']));
+	}
+
+	return filteredMatching;
 }
 
 /**
@@ -849,6 +892,22 @@ function showHelp() {
 	table.classList.add("helpContent");
 
 	openModal({ exhibits: [table.outerHTML] }, 0);
+}
+
+/**
+ * Sets the current test type and updates the content based on any URL parameters
+ * Called after the page has loaded
+ */
+function setInitialParams() {
+	const urlParams = new URLSearchParams(window.location.search);
+	const search = urlParams.get('search');
+	const test = urlParams.get('test');
+	if (test) {
+		setCurrentTest(test);
+	}
+	if (search) {
+		setCurrentSearch(search);
+	}
 }
 
 reinitialize();

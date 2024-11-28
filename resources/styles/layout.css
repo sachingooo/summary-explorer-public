@@ -247,3 +247,19 @@
 		background-color: rgb(50, 50, 50);
 	}
 }
+
+.headerBadge {
+	border: none;
+	padding: 3px 8px;
+	border-radius: 9px;
+	font-weight: normal;
+	font-size: 14px;
+
+	.lightTheme & {
+		background-color: rgb(230, 230, 230);
+	}
+
+	.darkTheme & {
+		background-color: rgb(50, 50, 50);
+	}
+}
