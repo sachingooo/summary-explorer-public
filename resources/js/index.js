@@ -334,6 +334,11 @@ function getCurrentTestContent() {
 			oneTest.innerHTML = TEST_TYPE.Step_2.display;
 			return getSpecificTestContent(TEST_TYPE.Step_2.key);
 		}
+		case TEST_TYPE.Step_3.key: {
+			selectTest.value = TEST_TYPE.Step_3.key;
+			oneTest.innerHTML = TEST_TYPE.Step_3.display;
+			return getSpecificTestContent(TEST_TYPE.Step_3.key);
+		}
 		case TEST_TYPE.Bar.key: {
 			selectTest.value = TEST_TYPE.Bar.key;
 			oneTest.innerHTML = TEST_TYPE.Bar.display;

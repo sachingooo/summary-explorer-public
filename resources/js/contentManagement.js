@@ -26,6 +26,7 @@ const CURRENT_REMOTE_API_VERSION_CACHE_KEY = "currentEducationalObjectiveRemoteA
 const TEST_TYPE = {
 	"Step_1": { key: "s1", display: "Step 1" },
 	"Step_2": { key: "s2", display: "Step 2" },
+	"Step_3": { key: "s3", display: "Step 3" },
 	"Bar": { key: "bar", display: "Bar" },
 }
 
